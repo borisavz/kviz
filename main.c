@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 int main() {
-    int i, ii, iii, odgovor, tacan_odgovor, *tacni, broj_pitanja,
+    int i, ii, iii, odgovor, *opcija, tacan_odgovor, *tacni, broj_pitanja,
         broj_odgovora, broj_igraca;
     char linija[200];
     FILE *pitanja, *odgovori;
@@ -18,7 +18,7 @@ int main() {
         perror("\nGreska");
         printf("Kod greske: %d", errno);
         getchar();
-        exit(1);
+        exit(errno);
     }
     fgets(linija, 200, pitanja);
     printf("Unesi broj igraca: ");
@@ -40,6 +40,7 @@ int main() {
     for(i = 0; i < broj_pitanja; i++) {
         fgets(linija, 200, pitanja);
         fscanf(odgovori, "%d %d", &broj_odgovora, &tacan_odgovor);
+        opcija = calloc(broj_odgovora, sizeof(int));
         printf("%d - %s", i + 1, linija);
         for(ii = 0; ii < broj_odgovora; ii++) {
             fgets(linija, 200, pitanja);
@@ -53,14 +54,23 @@ int main() {
                 exit(0);
             if(odgovor == tacan_odgovor)
                 *(tacni + ii) += 1;
+            *(opcija + odgovor - 1) += 1;
+        }
+        puts("");
+        for(ii = 0; ii < broj_odgovora; ii++) {
+            printf("%d|", ii + 1);
+            while((*(opcija + ii) -= 1) >= 0)
+                printf("*");
+            puts("");
         }
         printf("\nTacan odgovor je pod %d\n\n", tacan_odgovor);
+        free(opcija);
     }
     puts("Rezultati:");
-    for(i = 0, ii = 0; i < broj_igraca; i++) {
+    for(i = 0; i < broj_igraca; i++) {
         printf("\t%s: %d/%d (%.2f %%)\n", ime[i], *(tacni + i), broj_pitanja,
             ((float) *(tacni + i) / broj_pitanja) * 100);
-        fseek(odgovori, -iii, SEEK_CUR);
+        fseek(odgovori, -iii, SEEK_END);
         for(ii = 0; ii < iii; ii++)
             if(*(tacni + i) == ii) {
                 printf("\t\t%s\n", opis[ii]);
